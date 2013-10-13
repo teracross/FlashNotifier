@@ -14,5 +14,10 @@
         android:layout_width="match_parent"
         android:text="Toggle Light"
         android:onClick="toggleLight"/>
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:text="FlashLight"
+        android:onClick="flash"/>
 
 </LinearLayout>
