@@ -28,3 +28,7 @@ proguard/
 *.ipr
 *.iws
 .idea/
+
+# Gradle stuff
+.gradle/
+gradle/
