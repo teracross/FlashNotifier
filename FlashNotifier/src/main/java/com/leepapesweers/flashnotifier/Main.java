@@ -1,10 +1,15 @@
 package com.leepapesweers.flashnotifier;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -15,6 +20,7 @@ public class Main extends Activity {
     private Camera mCamera;
     private boolean mLightOn;
     private boolean mHasCameraFlash;
+    private boolean mFlashing;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +35,15 @@ public class Main extends Activity {
 
         mCamera = Camera.open();
         mLightOn = false;
+        mFlashing = false;
+
+        // Register SMS listener
+        IntentFilter smsFilter = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
+        registerReceiver(mSMSListener, smsFilter);
+
+        // Register call listener
+        IntentFilter callFilter = new IntentFilter("android.intent.action.PHONE_STATE");
+        registerReceiver(mCallListener, callFilter);
     }
 
     /**
@@ -56,13 +71,20 @@ public class Main extends Activity {
             return;
         }
 
-        new FlashTask().execute();
+        if (!mLightOn && !mFlashing) {
+            new FlashTask().execute();
+        }
     }
 
     /**
      * Done in a task because can't use sleep() on main thread
      */
     public class FlashTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected void onPreExecute(){
+            mFlashing = true;
+        }
 
         @Override
         protected Void doInBackground(Void... params) {
@@ -88,6 +110,11 @@ public class Main extends Activity {
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void v) {
+            mFlashing = false;
+        }
     }
 
     private void flashOn() {
@@ -110,5 +137,33 @@ public class Main extends Activity {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-    
+
+    private BroadcastReceiver mSMSListener = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            new FlashTask().execute();
+        }
+    };
+
+    private BroadcastReceiver mCallListener = new BroadcastReceiver() {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+
+            if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+                // Ringing
+                new FlashTask().execute();
+            }
+
+            if(state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
+                // Detect call answered
+            }
+
+            if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
+                // Detect end of call, probably don't need this
+            }
+        }
+    };
 }
