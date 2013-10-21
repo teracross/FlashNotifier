@@ -1,69 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context=".Main"
-    android:orientation="vertical">
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-    <Switch
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Service"
-        android:textSize="20sp"
-        android:id="@+id/chkbox"
-        android:checked="false"
-        android:hint="Click to toggle"
-        android:onClick="toggleService"/>
-
-    <!-- This is just a divider -->
     <View
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_margin="10dp"
-        android:background="@android:color/darker_gray" />
+        android:background="@android:color/transparent" />
 
     <LinearLayout
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:orientation="horizontal">
+
+        <ImageView
+            android:layout_height="53dp"
+            android:layout_width="53dp"
+            android:src="@drawable/ic_gosms" />
+
         <TextView
             android:layout_height="match_parent"
             android:layout_width="wrap_content"
-            android:text="SMS"
-            android:gravity="left|center_vertical"
-            android:maxLines="1"
-            android:textSize="20sp" />
-
-        <View
-            android:layout_height="match_parent"
-            android:layout_width="0dp"
-            android:layout_weight="1"/>
-
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/smsCheckBox"
-            android:layout_gravity="center_horizontal"
-            android:checked="true"
-            android:padding="5dp"
-            android:onClick="updateUserPref"
-            android:textSize="20sp"
-            android:gravity="right|center_vertical"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_height="wrap_content"
-        android:layout_width="match_parent"
-        android:orientation="horizontal">
-        <TextView
-            android:layout_height="match_parent"
-            android:layout_width="wrap_content"
-            android:text="Phone Calls"
+            android:text="GO SMS"
             android:gravity="left|center_vertical"
             android:maxLines="1"
             android:textSize="20sp" />
@@ -98,10 +58,16 @@
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:orientation="horizontal">
+
+        <ImageView
+            android:layout_height="53dp"
+            android:layout_width="53dp"
+            android:src="@drawable/ic_whatsapp" />
+
         <TextView
             android:layout_height="match_parent"
             android:layout_width="wrap_content"
-            android:text="Default API access"
+            android:text="WhatsApp"
             android:gravity="left|center_vertical"
             android:maxLines="1"
             android:textSize="20sp" />
@@ -111,27 +77,69 @@
             android:layout_width="0dp"
             android:layout_weight="1"/>
 
-        <Spinner
+        <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/spinner"
-            android:spinnerStyle="@android:style/Widget.Spinner.DropDown"
-            android:drawSelectorOnTop="true"
-            android:entries="@array/APIAccess"
-            android:gravity="right|center_vertical"
+            android:text=""
+            android:id="@+id/callCheckBox"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
             android:padding="5dp"
-            android:textSize="25sp"/>
+            android:onClick="updateUserPref"
+            android:textSize="20sp"
+            android:gravity="right|center_vertical"/>
 
     </LinearLayout>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="API Access Control"
-        android:layout_marginTop="20dp"
-        android:id="@+id/APIApps"
-        android:layout_gravity="center_horizontal"
-        android:onClick="APIDialog"/>
+    <!-- This is just a divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_margin="10dp"
+        android:background="@android:color/darker_gray" />
 
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_height="53dp"
+            android:layout_width="53dp"
+            android:src="@drawable/ic_fbmessenger" />
+
+        <TextView
+            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:text="Facebook Messenger"
+            android:gravity="left|center_vertical"
+            android:maxLines="1"
+            android:textSize="20sp" />
+
+        <View
+            android:layout_height="match_parent"
+            android:layout_width="0dp"
+            android:layout_weight="1"/>
+
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/callCheckBox"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
+            android:padding="5dp"
+            android:onClick="updateUserPref"
+            android:textSize="20sp"
+            android:gravity="right|center_vertical"/>
+
+    </LinearLayout>
+
+    <!-- This is just a divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_margin="10dp"
+        android:background="@android:color/darker_gray" />
 
 </LinearLayout>

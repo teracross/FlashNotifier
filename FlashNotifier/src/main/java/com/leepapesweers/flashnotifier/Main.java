@@ -1,134 +1,86 @@
 package com.leepapesweers.flashnotifier;
 
-import android.content.BroadcastReceiver;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.hardware.Camera;
-import android.os.AsyncTask;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Activity;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.CheckBox;
+import android.widget.Switch;
 
 public class Main extends Activity {
 
-    private Camera mCamera;
-    private boolean mLightOn;
-    private boolean mHasCameraFlash;
-    private boolean mFlashing;
+    private boolean mServiceRunning;
+    private Switch mServiceSwitch;
+    private SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mHasCameraFlash = getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH);
-        if (!mHasCameraFlash) {
-            Toast.makeText(this, "No camera to open", Toast.LENGTH_LONG).show();
-            return;
-        }
+        mPrefs = this.getSharedPreferences(
+                "com.leepapesweers.flashnotifier", Context.MODE_PRIVATE);
 
-        mCamera = Camera.open();
-        mLightOn = false;
-        mFlashing = false;
+        mServiceSwitch = (Switch) findViewById(R.id.chkbox);
 
-        // Register SMS listener
-        IntentFilter smsFilter = new IntentFilter("android.provider.Telephony.SMS_RECEIVED");
-        registerReceiver(mSMSListener, smsFilter);
+        mServiceRunning = isServiceRunning();
 
-        // Register call listener
-        IntentFilter callFilter = new IntentFilter("android.intent.action.PHONE_STATE");
-        registerReceiver(mCallListener, callFilter);
+        // Check pref values
+        ((CheckBox) findViewById(R.id.smsCheckBox)).setChecked(mPrefs.getBoolean("smsNotifications", false));
+        ((CheckBox) findViewById(R.id.callCheckBox)).setChecked(mPrefs.getBoolean("callNotifications", false));
+
+        updateServiceStatus();
     }
 
     /**
-     * Test method for the light, uses the button
-     * @param v view that's passed in, in this case it's the button
+     * Toggle the service if the checkboxview is clicked
+     * @param v the view parameter passed in from onClick
      */
-    public void toggleLight(View v) {
-        if (!mHasCameraFlash) {
-            Toast.makeText(this, "No camera to open", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (mLightOn) {
-            // Toggle off
-            flashOff();
+    public void toggleService(View v) {
+        Switch chkBox = (Switch) v;
+        if (chkBox.isChecked()) {
+            mServiceRunning = true;
+            startService(new Intent(this, SMSCallListener.class));
+            updateServiceStatus();
         } else {
-            // Toggle on
-            flashOn();
-        }
-    }
-
-    public void flash(View v) {
-        if (!mHasCameraFlash) {
-            Toast.makeText(this, "No camera to open", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        if (!mLightOn && !mFlashing) {
-            new FlashTask().execute();
+            mServiceRunning = false;
+            stopService(new Intent(this, SMSCallListener.class));
+            updateServiceStatus();
         }
     }
 
     /**
-     * Done in a task because can't use sleep() on main thread
+     * Updates the contents of the switch view
      */
-    public class FlashTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute(){
-            mFlashing = true;
-        }
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            if (!mHasCameraFlash) {
-                Toast.makeText(getBaseContext(), "No camera to open", Toast.LENGTH_LONG).show();
-                return null;
-            }
-
-            for (int i = 0; i < 2; ++i) {
-                flashOn();
-                try {
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    Log.e("FLASH", e.getMessage());
-                    flashOff();     // Turn it off if something went wrong
-                }
-                flashOff();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Log.e("FLASH", e.getMessage());
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void v) {
-            mFlashing = false;
+    public void updateServiceStatus() {
+        if (mServiceRunning) {
+            mServiceSwitch.setChecked(true);
+            mServiceSwitch.setText("Service is running!");
+        } else {
+            mServiceSwitch.setChecked(false);
+            mServiceSwitch.setText("Service isn't running");
         }
     }
 
-    private void flashOn() {
-        Camera.Parameters parameters = mCamera.getParameters();
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
-        mCamera.setParameters(parameters);
-        mLightOn = true;
+    public void updateUserPref(View v) {
+        CheckBox checkBox = (CheckBox) v;
+        boolean val = checkBox.isChecked();
+
+        if (v.getId() == R.id.callCheckBox) {
+//            Toast.makeText(this, "Calls updated", Toast.LENGTH_LONG).show();
+            mPrefs.edit().putBoolean("callNotifications", val).commit();
+        } else {
+            // Must be SMS
+            mPrefs.edit().putBoolean("smsNotifications", val).commit();
+        }
     }
 
-    private void flashOff() {
-        Camera.Parameters parameters = mCamera.getParameters();
-        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-        mCamera.setParameters(parameters);
-        mLightOn = false;
+    public void APIDialog(View v) {
+        startActivity(new Intent(this, APIAccess.class));
     }
 
     @Override
@@ -138,32 +90,17 @@ public class Main extends Activity {
         return true;
     }
 
-    private BroadcastReceiver mSMSListener = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            new FlashTask().execute();
-        }
-    };
-
-    private BroadcastReceiver mCallListener = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-
-            if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
-                // Ringing
-                new FlashTask().execute();
-            }
-
-            if(state.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)) {
-                // Detect call answered
-            }
-
-            if (state.equals(TelephonyManager.EXTRA_STATE_IDLE)) {
-                // Detect end of call, probably don't need this
+    /**
+     * Borrowed from http://stackoverflow.com/a/5921190
+     * @return true or false, depending on if service is running
+     */
+    private boolean isServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (SMSCallListener.class.getName().equals(service.service.getClassName())) {
+                return true;
             }
         }
-    };
+        return false;
+    }
 }
