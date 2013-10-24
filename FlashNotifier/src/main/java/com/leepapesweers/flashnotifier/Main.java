@@ -17,6 +17,7 @@ public class Main extends Activity {
     private Switch mServiceSwitch;
     private SharedPreferences mPrefs;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
